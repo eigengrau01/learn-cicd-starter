@@ -20,6 +20,8 @@ jobs:
 
       - name: Build
         run: ./scripts/buildprod.sh
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - id: 'auth'
         uses: 'google-github-actions/auth@v2'
@@ -34,6 +36,12 @@ jobs:
 
       - name: 'Run Docker Image'
         run: gcloud builds submit --tag us-central1-docker.pkg.dev/fine-mile-484307-g6/notely-ar-repo/notely-app:latest .
+
+      - name: Install goose
+        run: go install github.com/pressly/goose/v3/cmd/goose@latest
+
+      - name: Run migrations
+        run: ./scripts/migrateup.sh
 
       - name: Deploy to Cloud Run
         run: gcloud run deploy notely --image us-central1-docker.pkg.dev/fine-mile-484307-g6/notely-ar-repo/notely-app:latest --region us-central1 --allow-unauthenticated --project fine-mile-484307-g6 --max-instances=4
